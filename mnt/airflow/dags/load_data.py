@@ -3,8 +3,11 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 import pandas as pd
 import requests
+
 
 
 # def extract_and_transform_weather(weather_csv, weather_output_csv):
@@ -41,33 +44,51 @@ import requests
 #     print(f"Dataframe Shape: {df.shape}")
 #     print(f"Dataframe Preview: {df.head(5)}")
 
-def extract_and_transform_covid(covid_output_csv):
-    # raw data from nychealth
-    url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/trends/caserate-by-modzcta.csv'
-    # get webpage
-    res = requests.get(url, allow_redirects=True)
+# def extract_and_transform_covid(covid_output_csv):
+#     # raw data from nychealth
+#     url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/trends/caserate-by-modzcta.csv'
+#     # get webpage
+#     res = requests.get(url, allow_redirects=True)
 
-    # save page info to file
-    with open('data/raw_covid_data.csv','wb') as file:
-        file.write(res.content)
+#     # save page info to file
+#     with open('data/raw_covid_data.csv','wb') as file:
+#         file.write(res.content)
 
-    # read file
-    df = pd.read_csv('data/raw_covid_data.csv')
+#     # read file
+#     df = pd.read_csv('data/raw_covid_data.csv')
 
-    # melt data with rows containing week_ending(date), zip_zode, and case_rate
-    df = df.melt(id_vars=["week_ending"],
-        var_name="zip_code",
-        value_name="case_rate")
+#     # melt data with rows containing week_ending(date), zip_zode, and case_rate
+#     df = df.melt(id_vars=["week_ending"],
+#         var_name="zip_code",
+#         value_name="case_rate")
 
-    # slice the first 9 letters of column
-    df["zip_code"]= df["zip_code"].str[9:]
+#     # slice the first 9 letters of column
+#     df["zip_code"]= df["zip_code"].str[9:]
+    
+#     # ignore city names in zip code column
+#     df = df[120:]
+#     df.reset_index(inplace=True)
+#     df.drop(columns=["index"], inplace=True)
 
-    # save to csv
-    df.to_csv(covid_output_csv)
-    print(f"Dataframe Shape: {df.shape}")
-    print(f"Dataframe Preview: {df.head(5)}")
-    print(f"Missing Values: {df.isna().sum()}")
+#     # save to csv
+#     df.to_csv(covid_output_csv)
+#     print(f"Dataframe Shape: {df.shape}")
+#     print(f"Dataframe Preview: {df.head(5)}")
+#     print(f"Missing Values: {df.isna().sum()}")
 
+# def extract_and_transform_citibike(raw_citibike_csv, citibike_output_csv):
+#     # create spark session
+#     spark = SparkSession \
+#             .builder \
+#             .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
+#             .getOrCreate()
+
+#     # make spark run faster
+#     spark.conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2")
+
+#     # read csv and save to df
+#     df = spark.read.csv("data/202011-citibike-tripdata.csv",header=True)
+#     df.printSchema()
 
 default_args = {
     'owner': 'johnrick',
@@ -94,11 +115,31 @@ dag = DAG('load_data_dag',
 #     dag=dag
 # )
 
-transform_covid = PythonOperator(
-    task_id="transform_covid",
-    python_callable=extract_and_transform_covid,
-    op_kwargs={
-        "covid_output_csv": "data/transformed_covid_data_table.csv"
-    },
+# transform_covid = PythonOperator(
+#     task_id="transform_covid",
+#     python_callable=extract_and_transform_covid,
+#     op_kwargs={
+#         "covid_output_csv": "data/transformed_covid_data_table.csv"
+#     },
+#     dag=dag
+# )
+
+
+# saving_citibike = BashOperator(
+#         task_id="saving_citibike",
+#         bash_command="""  
+#             hdfs dfs -mkdir -p /citidata && \
+#             hdfs dfs -put -f $AIRFLOW_HOME/data/202011-citibike-tripdata.csv /citidata
+#             """,
+#         dag=dag
+#     )
+
+transform_citibike = SparkSubmitOperator(
+    task_id="transform_citibike", 
+    conn_id = "spark_conn",
+    application="/usr/local/airflow/dags/citibike_spark.py",
+    verbose=False,
     dag=dag
 )
+
+transform_citibike
