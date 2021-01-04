@@ -44,7 +44,7 @@ upload_covid_to_s3 = PythonOperator(
     python_callable=upload_file,
     op_kwargs={
         'filename': 'data/sample_transformed_covid.csv',
-        'bucket_name': 'ud-covid-citibike',
+        'bucket_name': 'ud-covid-citibike', # added s3_bucket:ud-covid-citibike bucket variable in Airflow
         'key': 'covid'
     },
     dag=dag
@@ -55,7 +55,7 @@ upload_dates_to_s3 = PythonOperator(
     python_callable=upload_file,
     op_kwargs={
         'filename': 'data/sample_transformed_date.csv',
-        'bucket_name': 'ud-covid-citibike', #s3://skuchkula-etl/unique_valid_searches_
+        'bucket_name': 'ud-covid-citibike', 
         'key': 'dates'
     },
     dag=dag
