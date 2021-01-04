@@ -39,15 +39,47 @@ def upload_file(filename, key, bucket_name):
     # s3.Object(bucket_name, filename).put(Body=open())
     
 
-upload_file_to_s3 = PythonOperator(
-    task_id = 'upload_file_to_s3',
+upload_covid_to_s3 = PythonOperator(
+    task_id = 'upload_covid_to_s3',
     python_callable=upload_file,
     op_kwargs={
-        'filename': 'data/sample_transformed_bike.csv',
-        'bucket_name': 'ud-covid-citibike', #s3://skuchkula-etl/unique_valid_searches_
-        'key': 'citibike'
+        'filename': 'data/sample_transformed_covid.csv',
+        'bucket_name': 'ud-covid-citibike',
+        'key': 'covid'
     },
     dag=dag
 )
 
-upload_file_to_s3
+upload_dates_to_s3 = PythonOperator(
+    task_id = 'upload_dates_to_s3',
+    python_callable=upload_file,
+    op_kwargs={
+        'filename': 'data/sample_transformed_date.csv',
+        'bucket_name': 'ud-covid-citibike', #s3://skuchkula-etl/unique_valid_searches_
+        'key': 'dates'
+    },
+    dag=dag
+)
+
+upload_stations_to_s3 = PythonOperator(
+    task_id = 'upload_stations_to_s3',
+    python_callable=upload_file,
+    op_kwargs={
+        'filename': 'data/sample_transformed_stations.csv',
+        'bucket_name': 'ud-covid-citibike', 
+        'key': 'stations'
+    },
+    dag=dag
+)
+
+
+upload_weather_to_s3 = PythonOperator(
+    task_id = 'upload_weather_to_s3',
+    python_callable=upload_file,
+    op_kwargs={
+        'filename': 'data/sample_transformed_weather.csv',
+        'bucket_name': 'ud-covid-citibike', 
+        'key': 'weather'
+    },
+    dag=dag
+)
