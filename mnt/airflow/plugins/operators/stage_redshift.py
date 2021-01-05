@@ -35,6 +35,10 @@ class StageToRedshiftOperator(BaseOperator):
         self.file_format=file_format
 
     def execute(self, context):
+        """
+        Use AwsHook to get data from S3. Empy table if table needs to be rendered.
+        Copy S3 information to Redshift table that was created.
+        """
         try:
             aws_hook = AwsHook(self.aws_credentials_id)
             credentials = aws_hook.get_credentials()
