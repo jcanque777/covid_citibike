@@ -11,6 +11,7 @@ import requests
 from airflow.operators.postgres_operator import PostgresOperator
 from operators.stage_redshift import StageToRedshiftOperator
 from operators.data_quality import DataQualityOperator
+
 ################################################################################
 ################################################################################
 
@@ -18,15 +19,16 @@ def extract_and_transform_weather(weather_csv, weather_output_csv):
     # load data
     df = pd.read_csv(weather_csv)
 
-    # only use 1 source
+    # only use most detailed source
     df = df[df["SOURCE"]==7]
 
     # keep only relevant
     cols_keep_list = ['DATE', 'REPORT_TYPE', "HourlyDryBulbTemperature", "HourlyRelativeHumidity", "HourlyPrecipitation", "HourlyWindSpeed"]
+    
     # create new dataframe
     df = df[cols_keep_list]
 
-    # create empty timestamp column and get timestamp from DATE column
+    # create timestamp column and get timestamp from DATE column
     df["ts"] = 0
     df["ts"] = pd.to_datetime(df.DATE)
     
@@ -42,22 +44,26 @@ def extract_and_transform_weather(weather_csv, weather_output_csv):
     df.fillna(method="ffill", inplace=True)
     df = df[['date', 'hour', 'REPORT_TYPE', 'HourlyDryBulbTemperature',
     'HourlyRelativeHumidity', 'HourlyPrecipitation', 'HourlyWindSpeed']]
+
     df[:50].to_csv(weather_output_csv, index=False)
     print(f"Dataframe Shape: {df.shape}")
     print(f"Dataframe Preview: {df.head(5)}")
 
-def extract_and_transform_covid(covid_output_csv):
+def extract_and_transform_covid(raw_covid_data, covid_output_csv):
     # raw data from nychealth
     url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/trends/caserate-by-modzcta.csv'
     # get webpage
     res = requests.get(url, allow_redirects=True)
 
     # save page info to file
-    with open('data/raw_covid_data.csv','wb') as file:
+    with open(raw_covid_data,'wb') as file:
         file.write(res.content)
+        # "raw_covid_data": "data/raw_covid_data.csv"
+        # "covid_output_csv": "data/transformed_covid_data_table.csv"
+
 
     # read file
-    df = pd.read_csv('data/raw_covid_data.csv')
+    df = pd.read_csv(raw_covid_data)
 
     # melt data with rows containing week_ending(date), zip_zode, and case_rate
     df = df.melt(id_vars=["week_ending"],
@@ -151,8 +157,9 @@ transform_covid = PythonOperator(
     task_id="transform_covid",
     python_callable=extract_and_transform_covid,
     op_kwargs={
-        "covid_output_csv": "data/transformed_covid_data_table.csv"
-    },
+        "raw_covid_data": "data/raw_covid_data.csv"
+        "covid_output_csv": "data/transformed_covid_data_table.csv",
+    }, #
     dag=dag
 )
 
