@@ -156,7 +156,7 @@ transform_covid = PythonOperator(
     task_id="transform_covid",
     python_callable=extract_and_transform_covid,
     op_kwargs={
-        "raw_covid_data": "data/raw_covid_data.csv"
+        "raw_covid_data": "data/raw_covid_data.csv",
         "covid_output_csv": "data/transformed_covid_data_table.csv",
     },
     dag=dag
@@ -305,7 +305,6 @@ run_data_quality_checks = DataQualityOperator(
                 'bike',
                 'dates']
 )
-
 
 middle_operator = DummyOperator(task_id='middle_dummy_operator', dag=dag)
 end_operator = DummyOperator(task_id='Stop_execution', dag=dag)
