@@ -38,7 +38,24 @@ Stations:
 
 ![graph_view_of_dag](https://user-images.githubusercontent.com/53429726/103698556-80744600-4f6f-11eb-86a8-cb3be83a73a3.png)
 
-## Files 
+## Files
+In Dags Folder:
+- load_data.py is the file that Airflow will use for the pipeline:
+  - Get raw csv files and transform them to be loaded onto S3
+  - Create Tables in Redshift
+  - Load files from S3 to Redshift
+- Citibike and Weather data csvs must be in data folder
+
+In Data Folder:
+- stations_table_with_zip.csv has all the stations with their corresponding zip codes 
+- transformed_date.csv has all dates for 2020 with their equivalent week ending date to match NYC_health
+
+In Plugins/Helpers Folder:
+- sql_queries.sql to create tables
+
+In Plugins/Operator Folder:
+- data_quality.py checks each table in Redshift if loaded data returned empty rows
+- stage_redshift.py gets data from S3 and puts into tables in redshift
 
 
 
