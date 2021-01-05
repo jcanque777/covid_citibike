@@ -58,9 +58,6 @@ def extract_and_transform_covid(raw_covid_data, covid_output_csv):
     # save page info to file
     with open(raw_covid_data,'wb') as file:
         file.write(res.content)
-        # "raw_covid_data": "data/raw_covid_data.csv"
-        # "covid_output_csv": "data/transformed_covid_data_table.csv"
-
 
     # read file
     df = pd.read_csv(raw_covid_data)
@@ -112,14 +109,14 @@ def extract_and_transform_citibike(raw_citibike_csv, citibike_output_csv):
     print(f"Missing Values: {df.isna().sum()}")
 
 
-def upload_file(filename, key, bucket_name):
-    hook = S3Hook('aws_credentials')
+def upload_file(aws_credentials_id, filename, key, bucket_name):
+    hook = S3Hook(aws_credentials_id)
     print(f"Bucket Name Exists: {hook.check_for_bucket(bucket_name)}")
     print(f"Bucket Prefixes: {hook.list_prefixes(bucket_name)}")
     print(f"Bucket Keys List: {hook.list_keys(bucket_name)}")
     hook.load_file(filename, key, bucket_name)
     print(f'Uploaded {filename} to {bucket_name} with {key}')
-    
+    # 'aws_credentials_id':'aws_credentials'
 
 ################################################################################
 ################################################################################
@@ -177,6 +174,7 @@ upload_dates_to_s3 = PythonOperator(
     task_id = 'upload_dates_to_s3',
     python_callable=upload_file,
     op_kwargs={
+        'aws_credentials_id': "aws_credentials",
         'filename': 'data/sample_transformed_date.csv',
         'bucket_name': 'ud-covid-citibike', 
         'key': 'dates'
@@ -188,6 +186,7 @@ upload_covid_to_s3 = PythonOperator(
     task_id = 'upload_covid_to_s3',
     python_callable=upload_file,
     op_kwargs={
+        'aws_credentials_id': "aws_credentials",
         'filename': 'data/transformed_covid_data_table.csv',
         'bucket_name': 'ud-covid-citibike', # added s3_bucket:ud-covid-citibike bucket variable in Airflow
         'key': 'covid'
@@ -199,6 +198,7 @@ upload_stations_to_s3 = PythonOperator(
     task_id = 'upload_stations_to_s3',
     python_callable=upload_file,
     op_kwargs={
+        'aws_credentials_id': "aws_credentials",
         'filename': 'data/sample_transformed_stations.csv',
         'bucket_name': 'ud-covid-citibike', 
         'key': 'stations'
@@ -210,6 +210,7 @@ upload_weather_to_s3 = PythonOperator(
     task_id = 'upload_weather_to_s3',
     python_callable=upload_file,
     op_kwargs={
+        'aws_credentials_id': "aws_credentials",
         'filename': "data/transformed_nyc_daily_weather.csv",
         'bucket_name': 'ud-covid-citibike', 
         'key': 'weather'
@@ -221,6 +222,7 @@ upload_bike_to_s3 = PythonOperator(
     task_id = 'upload_bike_to_s3',
     python_callable=upload_file,
     op_kwargs={
+        'aws_credentials_id': "aws_credentials",
         'filename': 'data/transformed_citibike_data.csv',
         'bucket_name': 'ud-covid-citibike', 
         'key': 'citibike'
