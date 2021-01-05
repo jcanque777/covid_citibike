@@ -16,6 +16,9 @@ class DataQualityOperator(BaseOperator):
         self.tables = tables
 
     def execute(self, context):
+        """
+        Check to see if there is any table that have 0 rows. If yes, raise flag.
+        """
         redshift_hook = PostgresHook(self.redshift_conn_id)
         for table in self.tables:
             records = redshift_hook.get_records(f"SELECT COUNT(*) FROM {table}")
