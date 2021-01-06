@@ -30,11 +30,29 @@ Stations:
 - Citibike only used station name with latitide and longitude. I had to create a new table and use geopy.geocoders to convert longitude and latitude to get a zip code
 - There are 1165 stations 
 
+![Table diagram](https://user-images.githubusercontent.com/53429726/103823949-057b6000-5041-11eb-94a2-6571e2b6a9c7.png)
+
 ## Technology and Set Up
 - Amazon S3 for file storage
 - Python for data processing
 - Amazon Redshift for data warehouse
 - Apache Airflow for workflow managemnt and scheduling tasks
+
+The main reason for using the above technologies is because they are the most popular tools for their specific purpose. At certain points in the process, I considered using other technologies to complete the project but decided that it was imperitive to use AWS for storage the data warehouse, while using Airflow as a way to manage the workflow. 
+
+### If Data Was Increased By 100x
+I would have used EMR and Spark for transformations. The beauty of using S3 and Redshift is that they scale easily and the storage and use of data warehouse would not change. 
+
+### If the pipelines were run on a daily basis by 7am.
+I would simply add "schedule_interval='0 7 * * *'" at the end of the dag statement. 
+
+dag = DAG('copy_s3_to_redshift',
+          default_args=default_args,
+          description='create tables for s3 data',
+          schedule_interval='0 7 * * *')
+
+### If the database needed to be accessed by 100+ people.
+Redshift is the option if 100+ people needed to access the database. The only changes would be to create a different security groups on AWS to allow different levels of access. 
 
 ![graph_view_of_dag](https://user-images.githubusercontent.com/53429726/103698556-80744600-4f6f-11eb-86a8-cb3be83a73a3.png)
 
