@@ -5,6 +5,8 @@ At first I wanted to see if there could be any correlation between Citibike use 
 
 The limitations of this would be that Citibike masks the users because of GDPR compliance. Also, looking at stations specific data provides little clues as to whether a person was actually in close enough proximity to a spread event. An example is going to a Citibike station near Central Park. With that being taken account, this project does take into account how to implement taking an idea to production using data that is available. 
 
+The purpose of getting all the data together is to see if there is a relationship between citibike ridership and Covid rates. Would an increase in rides lead to an increase in case rate in the week or two to follow? If users were not masked, could we identify users that were in an area of increased activity to warn of possibility of infection due to being in a high traffic area.
+
 ## Data 
 Citi Bike Data: https://s3.amazonaws.com/tripdata/202011-citibike-tripdata.csv.zip
 - Citibike provides detailed account of each of their bicycles. 
@@ -75,10 +77,10 @@ In Plugins/Operator Folder:
 - data_quality.py checks each table in Redshift if loaded data returned empty rows
 - stage_redshift.py gets data from S3 and puts into tables in redshift
 
-
-
-
-
-
-
-
+## Process
+1. Weather data and Citibike data must be downloaded and placed into data folder.
+2a. Citibike data and Weather data are transformed and saved into data folder.
+2b. Covid rates are extracted and transformed and saved into data folder.
+3. Covid, Citibike, Weather, Stations, and Dates are saved to AWS S3.
+4. Tables are created on AWS Redshift.
+5. Data from AWS S3 is moved to AWS Redshift.
